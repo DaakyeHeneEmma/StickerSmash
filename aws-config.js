@@ -26,6 +26,6 @@ const cognito = new AWS.CognitoIdentityServiceProvider({
   }
 });
 
-export { cognito };
+export default cognito;
 
 

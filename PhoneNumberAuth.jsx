@@ -1,10 +1,9 @@
 import 'react-native-get-random-values';
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
-import { cognito } from './aws-config';
+import cognito  from './aws-config';
 import CryptoJS from 'crypto-js';
 import { configs } from './aws-config';
-// import { checkUserExists } from './cognito';
 
 function generateSecretHash(username, clientId, clientSecret) {
   return CryptoJS.enc.Base64.stringify(
@@ -25,11 +24,6 @@ export default function PhoneNumberAuth({ navigation }) {
     setErrorMessage('');
     console.log(otp);
     try {
-      // const userExists = await checkUserExists(phoneNumber);
-      // if (!userExists) {
-      //   setErrorMessage('User not found in the Cognito user pool.');
-      //   return;
-      // }
       const clientId = configs.clientID;
       const clientSecret =configs.clientSecret;
       const secretHash = generateSecretHash(phoneNumber, clientId, clientSecret);
@@ -44,7 +38,7 @@ export default function PhoneNumberAuth({ navigation }) {
           SECRET_HASH: secretHash,
         },
       };
-  
+
       const result = await cognito.initiateAuth(params).promise();
       setSession(result.Session);
       setStep(2);
@@ -56,6 +50,11 @@ export default function PhoneNumberAuth({ navigation }) {
           console.error('Validation error:', error.message);
           setErrorMessage('An unknown error occurred: ' + error.message);
           break;
+
+          case 'InvalidLambdaResponseException':
+            console.error('Not authorized from otp here1:', error.message);
+            setErrorMessage('Your are not yet registered');
+            break;
 
         case 'NotAuthorizedException':
           console.error('Not authorized:', error.message);
@@ -125,6 +124,7 @@ export default function PhoneNumberAuth({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
       {step === 1 && (
         <>
           <TextInput
@@ -148,7 +148,6 @@ export default function PhoneNumberAuth({ navigation }) {
           <Button title="Verify OTP" onPress={handleVerifyOtp} />
         </>
       )}
-      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
     </View>
   );
 }
