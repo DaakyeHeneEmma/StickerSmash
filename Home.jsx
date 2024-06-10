@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <Text>Welcome to the Home Screen!</Text>
+      <Text>Tap&Hop Home Screen!</Text>
     </View>
   );
 }
