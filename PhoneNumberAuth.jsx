@@ -1,9 +1,12 @@
 import 'react-native-get-random-values';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
 import cognito  from './aws-config';
 import CryptoJS from 'crypto-js';
 import { configs } from './aws-config';
+import * as SecureStore  from 'expo-secure-store'
+
+const API = "https://3kder76760.execute-api.us-east-1.amazonaws.com/Pre-SIT/device/"
 
 function generateSecretHash(username, clientId, clientSecret) {
   return CryptoJS.enc.Base64.stringify(
@@ -20,7 +23,7 @@ export default function PhoneNumberAuth({ navigation }) {
   const [errorMessage, setErrorMessage] = useState('')
 
 
-  const handleSendOtp = async () => {
+  const handleSendOtp = useCallback(async() => {
     setErrorMessage('');
     console.log(otp);
     try {
@@ -67,12 +70,11 @@ export default function PhoneNumberAuth({ navigation }) {
           break;
       }
     }
-  };
+  });
   
 
 
-
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = useCallback(async () => {
     console.log(otp);
     try {
       const clientId = configs.clientID;
@@ -89,15 +91,14 @@ export default function PhoneNumberAuth({ navigation }) {
         },
         Session: session,
       };
-  
       const result = await cognito.respondToAuthChallenge(params).promise();
       console.log(result);
       if (result.AuthenticationResult) {
-        console.log('User authenticated:', result.AuthenticationResult);
+      const accessToken = await SecureStore.getItemAsync("AccessToken");
+        console.log('User authenticated:', result.AuthenticationResult.AccessToken);
+        console.log(phoneNumber)
+              }
         navigation.navigate('Home'); 
-      } else {
-        console.log('Additional challenge required.');
-      }
     } catch (error) { 
       console.error('Error verifying OTP:', error);
       setErrorMessage('An unknown error occurred: ' + error.message);
@@ -119,7 +120,7 @@ export default function PhoneNumberAuth({ navigation }) {
           break;
       }
     }
-  };
+  });
   
 
   return (
